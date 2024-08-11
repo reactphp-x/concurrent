@@ -1,0 +1,19 @@
+{
+    "name": "reactphp-x/concurrent",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "ReactphpX\\Concurrent\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "wpjscc",
+            "email": "wpjscc@gmail.com"
+        }
+    ],
+    "require": {
+        "react/promise": "^3.2",
+        "react/event-loop": "^1.5"
+    }
+}
