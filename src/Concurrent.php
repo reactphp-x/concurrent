@@ -103,10 +103,11 @@ final class Concurrent
 
         $first = \reset($this->queue);
         unset($this->queue[key($this->queue)]);
+        $first->resolve(null);
 
-        Loop::futureTick(function () use ($first) {
-            $first->resolve(null);
-        });
+        // Loop::futureTick(function () use ($first) {
+        //     $first->resolve(null);
+        // });
     }
 }
 
