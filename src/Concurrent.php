@@ -12,6 +12,7 @@ use React\Stream\ReadableStreamInterface;
 
 final class Concurrent
 {
+    private $stream = false;
     private $limit;
     private $pending = 0;
     private $queue = [];
@@ -22,8 +23,9 @@ final class Concurrent
      * For example when $limit is set to 10, 10 requests will flow to $next
      * while more incoming requests have to wait until one is done.
      */
-    public function __construct($limit)
+    public function __construct($limit, $stream = false)
     {
+        $this->stream = $stream;
         $this->limit = $limit;
     }
 
@@ -66,7 +68,7 @@ final class Concurrent
     {
         $that = $this;
         return $promise->then(function ($data) use ($that) {
-            if (interface_exists(ResponseInterface::class) && $data instanceof ResponseInterface) {
+            if ($that->stream && interface_exists(ResponseInterface::class) && $data instanceof ResponseInterface) {
                 $body = $data->getBody();
                 if (interface_exists(ReadableStreamInterface::class) && $body instanceof ReadableStreamInterface && $body->isReadable()) {
                     $body->on('close', function () use ($that) {
@@ -76,7 +78,7 @@ final class Concurrent
                     $that->processQueue();
                 }
             } 
-            else if (interface_exists(ReadableStreamInterface::class) && $data instanceof ReadableStreamInterface && $data->isReadable()) {
+            else if ($that->stream && interface_exists(ReadableStreamInterface::class) && $data instanceof ReadableStreamInterface && $data->isReadable()) {
                 $data->on('close', function () use ($that) {
                     $that->processQueue();
                 });
