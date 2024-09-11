@@ -34,7 +34,12 @@ final class Concurrent
         // happy path: simply invoke next request handler if we're below limit
         if ($this->pending < $this->limit) {
             ++$this->pending;
-            return $this->await(Promise\resolve($callback()));
+            try {
+                return $this->await(Promise\resolve($callback()));
+            } catch (\Throwable $e) {
+                $this->processQueue();
+                throw $e;
+            }
         }
         // get next queue position
         $queue =& $this->queue;
@@ -55,7 +60,12 @@ final class Concurrent
         return $deferred->promise()->then(function () use (&$pending, $that,$callback) {
             // invoke next request handler
             ++$pending;
-            return $that->await(Promise\resolve($callback()));
+            try {
+                return $that->await(Promise\resolve($callback()));
+            } catch (\Throwable $e) {
+                $that->processQueue();
+                throw $e;
+            }
         });
     }
 
