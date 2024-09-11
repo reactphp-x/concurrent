@@ -48,7 +48,6 @@ final class Concurrent
         $id = \key($queue);
 
         $deferred = new Deferred(function ($_, $reject) use (&$queue, $id) {
-            var_dump('Cancelled queued next handle');
             unset($queue[$id]);
             $reject(new \RuntimeException('Cancelled queued next handler'));
         });
