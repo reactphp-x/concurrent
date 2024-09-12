@@ -6,7 +6,7 @@ use ReactphpX\Concurrent\Concurrent;
 use React\Promise\Deferred;
 use React\EventLoop\Loop;
 
-$concurrent = new Concurrent(10);
+$concurrent = new Concurrent(10, false, 11);
 
 for ($i = 0; $i < 20; $i++) {
     $concurrent->concurrent(function () use ($i) {
@@ -18,8 +18,8 @@ for ($i = 0; $i < 20; $i++) {
         return $deferred->promise();
     })->then(function ($result) {
         echo "Result $result\n";
-    }, function ($error) {
+    }, function ($error) use ($i) {
         $message = $error->getMessage();
-        echo "Error $message\n";
+        echo "Error $i $message\n";
     });
 }

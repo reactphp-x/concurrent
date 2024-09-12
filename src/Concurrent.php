@@ -14,6 +14,7 @@ final class Concurrent
 {
     private $stream = false;
     private $limit;
+    private $maxLimit;
     private $pending = 0;
     private $queue = [];
 
@@ -23,10 +24,11 @@ final class Concurrent
      * For example when $limit is set to 10, 10 requests will flow to $next
      * while more incoming requests have to wait until one is done.
      */
-    public function __construct($limit, $stream = false)
+    public function __construct($limit, $stream = false, $maxLimit = 0)
     {
         $this->stream = $stream;
         $this->limit = $limit;
+        $this->maxLimit = $maxLimit;
     }
 
     public function concurrent($callback)
@@ -41,8 +43,14 @@ final class Concurrent
                 throw $e;
             }
         }
+
+
+        if ($this->maxLimit > 0 && ($this->pending + count($this->queue) + 1) >= $this->maxLimit) {
+            return Promise\reject(new \OverflowException('Max limit reached'));
+        }
+
         // get next queue position
-        $queue =& $this->queue;
+        $queue = &$this->queue;
         $queue[] = null;
         \end($queue);
         $id = \key($queue);
@@ -56,7 +64,7 @@ final class Concurrent
 
         $pending = &$this->pending;
         $that = $this;
-        return $deferred->promise()->then(function () use (&$pending, $that,$callback) {
+        return $deferred->promise()->then(function () use (&$pending, $that, $callback) {
             // invoke next request handler
             ++$pending;
             try {
@@ -86,13 +94,11 @@ final class Concurrent
                 } else {
                     $that->processQueue();
                 }
-            } 
-            else if ($that->stream && interface_exists(ReadableStreamInterface::class) && $data instanceof ReadableStreamInterface && $data->isReadable()) {
+            } else if ($that->stream && interface_exists(ReadableStreamInterface::class) && $data instanceof ReadableStreamInterface && $data->isReadable()) {
                 $data->on('close', function () use ($that) {
                     $that->processQueue();
                 });
-            } 
-            else {
+            } else {
                 $that->processQueue();
             }
             return $data;
