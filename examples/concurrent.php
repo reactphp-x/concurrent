@@ -6,7 +6,7 @@ use ReactphpX\Concurrent\Concurrent;
 use React\Promise\Deferred;
 use React\EventLoop\Loop;
 
-$concurrent = new Concurrent(10, false, 11);
+$concurrent = new Concurrent(10, 15);
 
 for ($i = 0; $i < 20; $i++) {
     $concurrent->concurrent(function () use ($i) {

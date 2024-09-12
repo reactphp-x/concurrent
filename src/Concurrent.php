@@ -24,11 +24,11 @@ final class Concurrent
      * For example when $limit is set to 10, 10 requests will flow to $next
      * while more incoming requests have to wait until one is done.
      */
-    public function __construct($limit, $stream = false, $maxLimit = 0)
+    public function __construct($limit, $maxLimit = 0, $stream = false)
     {
-        $this->stream = $stream;
         $this->limit = $limit;
         $this->maxLimit = $maxLimit;
+        $this->stream = $stream;
     }
 
     public function concurrent($callback)
