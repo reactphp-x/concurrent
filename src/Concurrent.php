@@ -45,7 +45,7 @@ final class Concurrent
         }
 
 
-        if ($this->maxLimit > 0 && ($this->pending + count($this->queue) + 1) >= $this->maxLimit) {
+        if ($this->maxLimit > 0 && ($this->pending + count($this->queue)) >= $this->maxLimit) {
             return Promise\reject(new \OverflowException('Max limit reached'));
         }
 
