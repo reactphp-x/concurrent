@@ -5,7 +5,6 @@ namespace ReactphpX\Concurrent;
 use React\Promise;
 use React\Promise\PromiseInterface;
 use React\Promise\Deferred;
-use React\EventLoop\Loop;
 use Psr\Http\Message\ResponseInterface;
 use React\Stream\ReadableStreamInterface;
 
@@ -17,6 +16,7 @@ final class Concurrent
     private $maxLimit;
     private $pending = 0;
     private $queue = [];
+    private $prioritizes = [];
 
     /**
      * @param int $limit Maximum amount of concurrent requests handled.
@@ -31,7 +31,7 @@ final class Concurrent
         $this->stream = $stream;
     }
 
-    public function concurrent($callback)
+    public function concurrent($callback, $prioritize = 0)
     {
         // happy path: simply invoke next request handler if we're below limit
         if ($this->pending < $this->limit) {
@@ -51,12 +51,15 @@ final class Concurrent
 
         // get next queue position
         $queue = &$this->queue;
+        $prioritizes = &$this->prioritizes;
         $queue[] = null;
         \end($queue);
         $id = \key($queue);
-
-        $deferred = new Deferred(function ($_, $reject) use (&$queue, $id) {
+        $prioritizes[$id] = $prioritize;
+        asort($prioritizes);
+        $deferred = new Deferred(function ($_, $reject) use (&$queue, &$prioritizes, $id) {
             unset($queue[$id]);
+            unset($prioritizes[$id]);
             $reject(new CancelledException('Cancelled queued next handler'));
         });
 
@@ -118,13 +121,12 @@ final class Concurrent
             return;
         }
 
-        $first = \reset($this->queue);
-        unset($this->queue[key($this->queue)]);
+        end($this->prioritizes);
+        $id = key($this->prioritizes);
+        $first = $this->queue[$id];
+        unset($this->queue[$id]);
+        unset($this->prioritizes[$id]);
         $first->resolve(null);
-
-        // Loop::futureTick(function () use ($first) {
-        //     $first->resolve(null);
-        // });
     }
 }
 
