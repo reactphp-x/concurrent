@@ -96,6 +96,44 @@ for ($i = 0; $i < 20; $i++) {
 }
 ```
 
+### priority
+
+first is executed result is 0;
+
+second is executed result is 19;
+second is executed result is 18;
+second is executed result is 17;
+second is executed result is 16;
+
+
+$prioritize is max and it is executed at front of the queue
+
+```php
+use ReactphpX\Concurrent\Concurrent;
+use React\Promise\Deferred;
+use React\EventLoop\Loop;
+
+$concurrent = new Concurrent(1, 0);
+
+for ($i = 0; $i < 20; $i++) {
+    $concurrent->concurrent(function () use ($i) {
+        $deferred = new Deferred();
+        echo "Request $i\n";
+        Loop::addTimer(1, function () use ($deferred, $i) {
+            $deferred->resolve($i);
+        });
+        return $deferred->promise();
+    }, $i)->then(function ($result) {
+        echo "Result $result\n";
+    }, function ($error) use ($i) {
+        $message = $error->getMessage();
+        echo "Error $i $message\n";
+    });
+}
+```
+
+
+
 
 
 ## License
