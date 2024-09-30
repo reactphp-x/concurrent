@@ -56,7 +56,7 @@ final class Concurrent
         \end($queue);
         $id = \key($queue);
         $prioritizes[$id] = $prioritize;
-        asort($prioritizes);
+        arsort($prioritizes);
         $deferred = new Deferred(function ($_, $reject) use (&$queue, &$prioritizes, $id) {
             unset($queue[$id]);
             unset($prioritizes[$id]);
@@ -121,7 +121,7 @@ final class Concurrent
             return;
         }
 
-        end($this->prioritizes);
+        reset($this->prioritizes);
         $id = key($this->prioritizes);
         $first = $this->queue[$id];
         unset($this->queue[$id]);
